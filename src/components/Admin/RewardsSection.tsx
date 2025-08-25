@@ -720,3 +720,7 @@ const RewardsSection = () => {
 };
 
 export default RewardsSection;
+  );
+};
+
+export default RewardsSection;
