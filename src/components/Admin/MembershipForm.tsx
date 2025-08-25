@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2, Calculator, User, Phone, Mail, Calendar, CreditCard, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import MembershipCalculator from './MembershipCalculator';
 
 interface MembershipFormProps {
   membership?: Membership | null;
@@ -15,6 +16,7 @@ interface Area {
 
 const MembershipForm: React.FC<MembershipFormProps> = ({ membership, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
   const [errors, setErrors] = useState({
     phone: '',
     email: '',
@@ -34,142 +36,23 @@ const MembershipForm: React.FC<MembershipFormProps> = ({ membership, onClose, on
     notes: membership?.notes || ''
   });
 
-  // Definición de categorías y precios según MEMBRESIAS.md
-  const categories = {
-    grandes: {
-      title: 'Áreas Grandes',
-      zones: ['Piernas Completas', 'Brazos', 'Espalda'],
-      plans: {
-        esencial: { monthly: 800, sessions: 6 },
-        completa: { monthly: 675, sessions: 9 },
-        platinum: { monthly: 575, sessions: 12 }
-      }
-    },
-    medianas: {
-      title: 'Áreas Medianas',
-      zones: ['Abdomen', '1/2 Piernas', '1/2 Brazos', 'Rostro', 'Bikini', 'Glúteos', 'Pecho', 'Hombros', '1/2 Espalda', 'Axilas'],
-      plans: {
-        esencial: { monthly: 600, sessions: 6 },
-        completa: { monthly: 500, sessions: 9 },
-        platinum: { monthly: 425, sessions: 12 }
-      }
-    },
-    chicas: {
-      title: 'Áreas Chicas',
-      zones: ['Manos', 'Pies', 'Líneas', 'Bigote', 'Pómulos', 'Mentón', 'Areolas', 'Patillas', 'Cuello', 'Nuca'],
-      plans: {
-        esencial: { monthly: 400, sessions: 6 },
-        completa: { monthly: 335, sessions: 9 },
-        platinum: { monthly: 285, sessions: 12 }
-      }
-    }
-  };
-
-  // Precios para Cuerpo Completo
-  const cuerpoCompletoPlans = {
-    esencial: { monthly: 1800, sessions: 6 },
-    completa: { monthly: 1500, sessions: 9 },
-    platinum: { monthly: 1200, sessions: 12 }
-  };
-
-  const calculatePricing = () => {
-    if (formData.membership_type === 'combo') {
-      // Cuerpo Completo tiene precios fijos
-      const planData = cuerpoCompletoPlans[formData.plan_name];
-      setFormData(prev => ({
-        ...prev,
-        monthly_payment: planData.monthly,
-        initial_payment: planData.monthly,
-        total_sessions: planData.sessions
-      }));
-      return;
-    }
-
-    if (formData.membership_type === 'individual' && formData.areas.length === 1) {
-      const area = formData.areas[0];
-      const categoryData = categories[area.category];
-      const planData = categoryData.plans[formData.plan_name];
-      
-      setFormData(prev => ({
-        ...prev,
-        monthly_payment: planData.monthly,
-        initial_payment: planData.monthly,
-        total_sessions: planData.sessions
-      }));
-    }
-
-    if (formData.membership_type === 'personalizada' && formData.areas.length > 1) {
-      // Calcular descuentos por volumen
-      let totalIndividual = 0;
-      let totalSessions = 0;
-
-      formData.areas.forEach(area => {
-        const categoryData = categories[area.category];
-        const planData = categoryData.plans[formData.plan_name];
-        totalIndividual += planData.monthly;
-        totalSessions = Math.max(totalSessions, planData.sessions);
-      });
-
-      // Aplicar descuentos según número de zonas
-      let discount = 0;
-      if (formData.areas.length === 2) discount = 0.20;
-      else if (formData.areas.length === 3) discount = 0.25;
-      else if (formData.areas.length === 4) discount = 0.30;
-
-      const discountedPrice = totalIndividual * (1 - discount);
-
-      setFormData(prev => ({
-        ...prev,
-        monthly_payment: Math.round(discountedPrice),
-        initial_payment: Math.round(discountedPrice),
-        total_sessions: totalSessions
-      }));
-    }
-  };
-
-  const addArea = (category: 'grandes' | 'medianas' | 'chicas', zoneName: string) => {
-    const newArea: Area = { category, name: zoneName };
-    setFormData(prev => {
-      const newAreas = [...prev.areas, newArea];
-      
-      // Cambio automático de tipo según número de áreas
-      let newMembershipType = prev.membership_type;
-      if (newAreas.length === 1) {
-        newMembershipType = 'individual';
-      } else if (newAreas.length >= 2 && newAreas.length <= 4) {
-        newMembershipType = 'personalizada';
-      } else if (newAreas.length >= 5) {
-        newMembershipType = 'combo';
-      }
-      
-      return {
-        ...prev,
-        areas: newAreas,
-        membership_type: newMembershipType
-      };
-    });
-  };
-
-  const removeArea = (index: number) => {
-    setFormData(prev => {
-      const newAreas = prev.areas.filter((_, i) => i !== index);
-      
-      // Cambio automático de tipo según número de áreas
-      let newMembershipType = prev.membership_type;
-      if (newAreas.length === 1) {
-        newMembershipType = 'individual';
-      } else if (newAreas.length >= 2 && newAreas.length <= 4) {
-        newMembershipType = 'personalizada';
-      } else if (newAreas.length >= 5) {
-        newMembershipType = 'combo';
-      }
-      
-      return {
-        ...prev,
-        areas: newAreas,
-        membership_type: newMembershipType
-      };
-    });
+  const handleCalculatorChange = (calculation: {
+    areas: Area[];
+    membershipType: 'individual' | 'personalizada' | 'combo';
+    planName: 'esencial' | 'completa' | 'platinum';
+    monthlyPayment: number;
+    initialPayment: number;
+    totalSessions: number;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      areas: calculation.areas,
+      membership_type: calculation.membershipType,
+      plan_name: calculation.planName,
+      monthly_payment: calculation.monthlyPayment,
+      initial_payment: calculation.initialPayment,
+      total_sessions: calculation.totalSessions
+    }));
   };
 
   const validatePhone = (phone: string) => {
@@ -299,13 +182,6 @@ const MembershipForm: React.FC<MembershipFormProps> = ({ membership, onClose, on
     }
   };
 
-  // Recalcular precios cuando cambien las áreas o el plan
-  React.useEffect(() => {
-    if (formData.areas.length > 0) {
-      calculatePricing();
-    }
-  }, [formData.areas, formData.plan_name, formData.membership_type]);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -402,163 +278,66 @@ const MembershipForm: React.FC<MembershipFormProps> = ({ membership, onClose, on
           </div>
 
           {/* Tipo de Membresía */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tipo de Membresía</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              {(['individual', 'personalizada', 'combo'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, membership_type: type }));
-                  }}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    formData.membership_type === type
-                      ? 'border-[#37b7ff] bg-[#37b7ff]/10'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-semibold capitalize">
-                    {type === 'combo' ? 'Cuerpo Completo' : type}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {type === 'individual' && 'Una sola área'}
-                    {type === 'personalizada' && 'Máximo 4 áreas'}
-                    {type === 'combo' && 'Mínimo 5 áreas'}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Calculadora de Membresías */}
+          {!membership && (
+            <MembershipCalculator
+              onCalculationChange={handleCalculatorChange}
+              initialAreas={formData.areas}
+              initialPlan={formData.plan_name}
+            />
+          )}
 
-          {/* Plan */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Plan</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              {(['esencial', 'completa', 'platinum'] as const).map((plan) => (
-                <button
-                  key={plan}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, plan_name: plan }))}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    formData.plan_name === plan
-                      ? 'border-[#37b7ff] bg-[#37b7ff]/10'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-semibold capitalize">{plan}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {plan === 'esencial' && '6 sesiones'}
-                    {plan === 'completa' && '9 sesiones ⭐'}
-                    {plan === 'platinum' && '12 sesiones'}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Selección de Áreas */}
-          {(formData.membership_type === 'individual' || formData.membership_type === 'personalizada' || formData.membership_type === 'combo') && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Áreas de Tratamiento</h3>
-              
-              {/* Áreas Seleccionadas */}
-              {formData.areas.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Áreas seleccionadas:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.areas.map((area, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 bg-[#37b7ff] text-white rounded-full text-sm"
-                      >
-                        {area.name}
-                        {!membership && (
-                          <button
-                            type="button"
-                            onClick={() => removeArea(index)}
-                            className="ml-2 hover:text-red-200"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  {/* Contador de áreas */}
-                  <div className="mt-2 text-sm text-gray-600">
-                    {formData.membership_type === 'personalizada' && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        formData.areas.length <= 4 ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
-                      }`}>
-                        Personalizada: {formData.areas.length} área{formData.areas.length !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                    {formData.membership_type === 'combo' && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Cuerpo Completo: {formData.areas.length} área{formData.areas.length !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                    {formData.membership_type === 'individual' && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Individual: {formData.areas.length} área
-                      </span>
-                    )}
-                  </div>
+          {/* Información para edición */}
+          {membership && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-start space-x-3">
+                <div className="p-1 bg-blue-100 rounded-full">
+                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
                 </div>
-              )}
-
-              {/* Categorías de Áreas */}
-              {!membership ? (
-                // Modo CREAR - Mostrar todas las categorías
-                <div className="space-y-4">
-                  {Object.entries(categories).map(([categoryKey, category]) => (
-                    <div key={categoryKey} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-3">{category.title}</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {category.zones.map((zone) => (
-                          <button
-                            key={zone}
-                            type="button"
-                            onClick={() => addArea(categoryKey as 'grandes' | 'medianas' | 'chicas', zone)}
-                            disabled={formData.areas.some(area => area.name === zone)}
-                            className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Plus size={14} className="inline mr-1" />
-                            {zone}
-                          </button>
-                        ))}
+                <div>
+                  <h4 className="text-sm font-medium text-blue-800 mb-1">
+                    Editando membresía existente
+                  </h4>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Para mantener un mejor control del progreso, no se pueden modificar las áreas de una membresía existente. 
+                    Si el cliente desea agregar una nueva área, crea una nueva membresía separada.
+                  </p>
+                  
+                  {/* Mostrar información actual */}
+                  <div className="bg-white/50 rounded-lg p-3">
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-blue-800">Tipo:</span>
+                        <span className="ml-2 capitalize">{formData.membership_type}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-800">Plan:</span>
+                        <span className="ml-2 capitalize">{formData.plan_name}</span>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="font-medium text-blue-800">Áreas:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {formData.areas.map((area, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs"
+                            >
+                              {area.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                // Modo EDITAR - Mostrar mensaje informativo
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-1 bg-blue-100 rounded-full">
-                      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-800 mb-1">
-                        No se pueden agregar áreas adicionales
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        Para mantener un mejor control del progreso, cada membresía debe ser independiente. 
-                        Si el cliente desea agregar una nueva área, crea una nueva membresía separada.
-                      </p>
-                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
           {/* Información de Precios */}
-          {formData.areas.length > 0 && (
+          {(formData.areas.length > 0 || membership) && (
             <div className="bg-[#37b7ff]/10 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Calculator className="mr-2" size={20} />
@@ -627,7 +406,7 @@ const MembershipForm: React.FC<MembershipFormProps> = ({ membership, onClose, on
             </button>
             <button
               type="submit"
-              disabled={loading || formData.areas.length === 0 || errors.phone || errors.email || errors.name}
+              disabled={loading || (!membership && formData.areas.length === 0) || errors.phone || errors.email || errors.name}
               className="px-6 py-2 bg-[#37b7ff] text-white rounded-lg hover:bg-[#2da7ef] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {loading ? (
