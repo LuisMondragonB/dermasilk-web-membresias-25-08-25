@@ -7,6 +7,11 @@ import { supabase } from '../../lib/supabase';
                       >
                         <Award size={16} />
                       </button>
+                        className="text-yellow-600 hover:text-yellow-800 transition-colors"
+                        title="Otorgar Puntos"
+                      >
+                        <Award size={16} />
+                      </button>
       alert('Por favor completa todos los campos requeridos');
       return;
     }
