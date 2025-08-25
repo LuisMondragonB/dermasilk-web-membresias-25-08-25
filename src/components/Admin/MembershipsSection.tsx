@@ -1,32 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, CreditCard, User, Phone, X, Lock, FileText, Download, Award } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-const [loyaltyForm, setLoyaltyForm] = useState({
-    points: 0,
-    reason: '',
-    description: ''
-  });
-import MembershipForm from './MembershipForm';
-
-interface Membership {
-  id: string;
-  client_name: string;
-  client_phone: string;
-  client_email: string | null;
-  membership_type: 'individual' | 'combo' | 'personalizada';
-  plan_name: 'esencial' | 'completa' | 'platinum';
-  areas: Array<{ category: string; name: string }>;
-  monthly_payment: number;
-  initial_payment: number;
-  total_sessions: number;
-  completed_sessions: number;
-  start_date: string;
-  end_date: string | null;
-  status: 'activa' | 'pausada' | 'completada' | 'cancelada';
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 const MembershipsSection = () => {
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -49,6 +23,118 @@ const MembershipsSection = () => {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notesText, setNotesText] = useState('');
   const [membershipForNotes, setMembershipForNotes] = useState<Membership | null>(null);
+  const [showPointsModal, setShowPointsModal] = useState(false);
+  const [membershipForPoints, setMembershipForPoints] = useState<Membership | null>(null);
+  const [pointsForm, setPointsForm] = useState({
+    points: 0,
+    reason: '',
+    description: ''
+  });
+
+  const handleAddPoints = async () => {
+    if (!membershipForPoints || pointsForm.points <= 0 || !pointsForm.reason) {
+      alert('Por favor completa todos los campos requeridos');
+      return;
+    }
+
+    try {
+      // Primero verificar si el cliente existe en la tabla clients
+      const { data: existingClient, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('email', membershipForPoints.client_email)
+        .single();
+
+      let clientId;
+
+      if (clientError && clientError.code === 'PGRST116') {
+        // Cliente no existe, crearlo
+        const { data: newClient, error: createError } = await supabase
+          .from('clients')
+          .insert([{
+            name: membershipForPoints.client_name,
+            email: membershipForPoints.client_email,
+            phone: membershipForPoints.client_phone,
+            points: pointsForm.points
+          }])
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        clientId = newClient.id;
+      } else if (clientError) {
+        throw clientError;
+      } else {
+        // Cliente existe, actualizar puntos
+        clientId = existingClient.id;
+        const { error: updateError } = await supabase
+          .from('clients')
+          .update({ 
+            points: supabase.raw(`points + ${pointsForm.points}`)
+          })
+          .eq('id', clientId);
+
+        if (updateError) throw updateError;
+      }
+
+      // Crear transacción de puntos
+      const { error: transactionError } = await supabase
+        .from('rewards_transactions')
+        .insert([{
+          client_id: clientId,
+          points: pointsForm.points,
+          transaction_type: 'earned',
+          reason: pointsForm.reason,
+          description: pointsForm.description || null
+        }]);
+
+      if (transactionError) throw transactionError;
+
+      alert(`¡Puntos otorgados exitosamente! ${membershipForPoints.client_name} recibió ${pointsForm.points} puntos.`);
+      setShowPointsModal(false);
+      setMembershipForPoints(null);
+      setPointsForm({
+        points: 0,
+        reason: '',
+        description: ''
+      });
+    } catch (error) {
+      console.error('Error adding points:', error);
+      alert('Error al otorgar puntos');
+    }
+  };
+
+  const handleCancelPoints = () => {
+    setShowPointsModal(false);
+    setMembershipForPoints(null);
+    setPointsForm({
+      points: 0,
+      reason: '',
+      description: ''
+    });
+  };
+
+import MembershipForm from './MembershipForm';
+
+interface Membership {
+  id: string;
+  client_name: string;
+  client_phone: string;
+  client_email: string | null;
+  membership_type: 'individual' | 'combo' | 'personalizada';
+  plan_name: 'esencial' | 'completa' | 'platinum';
+  areas: Array<{ category: string; name: string }>;
+  monthly_payment: number;
+  initial_payment: number;
+  total_sessions: number;
+  completed_sessions: number;
+  start_date: string;
+  end_date: string | null;
+  status: 'activa' | 'pausada' | 'completada' | 'cancelada';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
   const fetchMemberships = async () => {
     try {
@@ -350,7 +436,6 @@ const MembershipsSection = () => {
     link.click();
     document.body.removeChild(link);
   };
-  
   const updateMembershipStatus = async (membershipId: string, newStatus: string) => {
     try {
       const { error } = await supabase
