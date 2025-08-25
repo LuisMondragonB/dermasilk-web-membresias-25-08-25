@@ -47,9 +47,9 @@ const MembershipCalculator = () => {
 
   // Precios para Cuerpo Completo
   const cuerpoCompletoPlans = {
-    esencial: { monthly: 1800, sessions: 6 },
-    completa: { monthly: 1500, sessions: 9 },
-    platinum: { monthly: 1200, sessions: 12 }
+    esencial: { monthly: 2299, sessions: 6 },
+    completa: { monthly: 1899, sessions: 9 },
+    platinum: { monthly: 1599, sessions: 12 }
   };
 
   const calculatePricing = () => {
@@ -77,13 +77,24 @@ const MembershipCalculator = () => {
     // Calcular para Cuerpo Completo (5+ áreas)
     if (membershipType === 'combo') {
       const planData = cuerpoCompletoPlans[selectedPlan];
+      
+      // Calcular precio individual total para mostrar el descuento
+      let individualTotal = 0;
+      selectedAreas.forEach(area => {
+        const categoryData = categories[area.category];
+        const planData = categoryData.plans[selectedPlan];
+        individualTotal += planData.monthly;
+      });
+      
+      const savings = individualTotal - planData.monthly;
+      
       return {
         membershipType,
         monthlyPayment: planData.monthly,
         initialPayment: planData.monthly,
         totalSessions: planData.sessions,
-        savings: 0,
-        individualTotal: 0
+        savings: savings > 0 ? savings : 0,
+        individualTotal
       };
     }
 
@@ -465,25 +476,35 @@ const MembershipCalculator = () => {
           </div>
 
           {/* Información Adicional */}
-          {calculation.membershipType === 'personalizada' && calculation.savings > 0 && (
+          {(calculation.membershipType === 'personalizada' || calculation.membershipType === 'combo') && calculation.savings > 0 && (
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mt-6">
               <div className="flex items-start space-x-3">
                 <Sparkles className="text-green-600 flex-shrink-0 mt-1" size={24} />
                 <div className="text-green-800">
-                  <p className="font-bold text-lg">¡Excelente elección!</p>
-                  <p className="text-lg">Ahorras <span className="font-bold">{formatCurrency(calculation.savings)}</span> mensuales con esta combinación personalizada.</p>
+                  <p className="font-bold text-lg">
+                    {calculation.membershipType === 'combo' ? '¡SÚPER DESCUENTO CUERPO COMPLETO!' : '¡Excelente elección!'}
+                  </p>
+                  <p className="text-lg">
+                    Ahorras <span className="font-bold text-2xl text-green-700">{formatCurrency(calculation.savings)}</span> mensuales 
+                    {calculation.membershipType === 'combo' ? ' con el paquete Cuerpo Completo' : ' con esta combinación personalizada'}.
+                  </p>
+                  {calculation.membershipType === 'combo' && (
+                    <p className="text-base mt-2 font-semibold">
+                      ¡Eso es un ahorro de <span className="text-green-700">{formatCurrency(calculation.savings * 12)}</span> al año!
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {calculation.membershipType === 'combo' && (
+          {calculation.membershipType === 'combo' && calculation.savings === 0 && (
             <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mt-6">
               <div className="flex items-start space-x-3">
                 <Crown className="text-purple-600 flex-shrink-0 mt-1" size={24} />
                 <div className="text-purple-800">
                   <p className="font-bold text-lg">¡Cuerpo Completo Premium!</p>
-                  <p className="text-lg">Tratamiento integral con precio especial para 5 o más áreas.</p>
+                  <p className="text-lg">Tratamiento integral con precio especial de $1,899/mes para 5 o más áreas.</p>
                 </div>
               </div>
             </div>
