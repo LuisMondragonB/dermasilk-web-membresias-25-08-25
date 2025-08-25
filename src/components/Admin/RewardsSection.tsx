@@ -718,20 +718,4 @@ const RewardsSection = () => {
     </div>
   );
 
-  const toggleRewardStatus = async (rewardId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('rewards_catalog')
-        .update({ active: !currentStatus })
-        .eq('id', rewardId);
-
-      if (error) throw error;
-      await fetchRewards();
-    } catch (error) {
-      console.error('Error updating reward status:', error);
-      alert('Error al actualizar el estado');
-    }
-  };
-};
-
 export default RewardsSection;
