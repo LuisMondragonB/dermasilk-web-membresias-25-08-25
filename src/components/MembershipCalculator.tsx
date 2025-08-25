@@ -413,7 +413,7 @@ const MembershipCalculator = () => {
           
           <div className="grid md:grid-cols-2 gap-8">
             {/* Detalles */}
-            <div className="space-y-4">
+            <div className="space-y-4 order-2 md:order-1">
               <div className="flex justify-between items-center py-3 border-b border-gray-200">
                 <span className="text-gray-600 font-medium">Tipo de Membresía:</span>
                 <span className="font-bold text-lg capitalize">
@@ -438,28 +438,28 @@ const MembershipCalculator = () => {
             </div>
 
             {/* Precios */}
-            <div className="bg-gradient-to-br from-[#37b7ff]/10 to-[#37b7ff]/20 rounded-xl p-6">
+            <div className="bg-gradient-to-br from-[#37b7ff]/10 to-[#37b7ff]/20 rounded-xl p-6 order-1 md:order-2">
               {calculation.membershipType === 'personalizada' && calculation.savings > 0 && (
                 <>
-                  <div className="flex justify-between items-center text-gray-600 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-gray-600 mb-2 space-y-1 sm:space-y-0">
                     <span>Precio Individual:</span>
-                    <span className="line-through text-lg">{formatCurrency(calculation.individualTotal)}</span>
+                    <span className="line-through text-lg font-semibold">{formatCurrency(calculation.individualTotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-green-600 font-bold mb-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-green-600 font-bold mb-4 space-y-1 sm:space-y-0">
                     <span>Descuento ({selectedAreas.length === 2 ? '20%' : selectedAreas.length === 3 ? '25%' : '30%'}):</span>
-                    <span className="text-lg">-{formatCurrency(calculation.savings)}</span>
+                    <span className="text-xl font-bold">-{formatCurrency(calculation.savings)}</span>
                   </div>
                 </>
               )}
               
-              <div className="flex justify-between items-center text-2xl font-bold text-[#37b7ff] mb-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-[#37b7ff] mb-3 space-y-2 sm:space-y-0">
                 <span>Pago Mensual:</span>
-                <span>{formatCurrency(calculation.monthlyPayment)}</span>
+                <span className="text-3xl sm:text-2xl font-bold">{formatCurrency(calculation.monthlyPayment)}</span>
               </div>
               
-              <div className="flex justify-between items-center text-xl font-bold text-[#37b7ff]">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-[#37b7ff] space-y-2 sm:space-y-0">
                 <span>Pago Inicial:</span>
-                <span>{formatCurrency(calculation.initialPayment)}</span>
+                <span className="text-2xl sm:text-xl font-bold">{formatCurrency(calculation.initialPayment)}</span>
               </div>
             </div>
           </div>
