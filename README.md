@@ -142,8 +142,9 @@ npm run build
 
 ### Variables de Entorno
 ```env
-# No se requieren variables de entorno para este proyecto
-# Todos los datos están hardcodeados por seguridad
+# Variables requeridas para Supabase
+VITE_SUPABASE_URL=your_supabase_project_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
 ### Configuración de Tailwind
