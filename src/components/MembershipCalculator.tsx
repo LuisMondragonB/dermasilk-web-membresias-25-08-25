@@ -218,9 +218,21 @@ const MembershipCalculator = () => {
               <div
                 key={plan}
                 className={`relative cursor-pointer transition-all duration-300 ${
-                  isSelected ? 'transform scale-105' : 'hover:transform hover:scale-102'
+                  isSelected ? 'transform scale-110' : 'hover:transform hover:scale-105'
                 }`}
-                onClick={() => setSelectedPlan(plan)}
+                onClick={() => {
+                  setSelectedPlan(plan);
+                  // Scroll automático a la sección de áreas
+                  setTimeout(() => {
+                    const areasSection = document.getElementById('areas-selection');
+                    if (areasSection) {
+                      areasSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                      });
+                    }
+                  }, 100);
+                }}
               >
                 {isPopular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
@@ -233,14 +245,16 @@ const MembershipCalculator = () => {
                 
                 <div className={`p-6 rounded-2xl border-3 transition-all duration-200 ${
                   isSelected
-                    ? 'border-[#37b7ff] bg-white shadow-xl'
-                    : 'border-gray-200 hover:border-gray-300 bg-white shadow-lg'
+                    ? 'border-[#37b7ff] bg-gradient-to-br from-[#37b7ff]/10 to-[#37b7ff]/20 shadow-2xl ring-4 ring-[#37b7ff]/30'
+                    : 'border-gray-200 hover:border-[#37b7ff]/50 bg-white shadow-lg hover:shadow-xl'
                 }`}>
                   <div className={`w-16 h-16 bg-gradient-to-br ${getPlanColor(plan)} rounded-xl flex items-center justify-center mx-auto mb-4`}>
                     <Icon className="text-white" size={32} />
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold capitalize text-gray-900 mb-2">{plan}</div>
+                    <div className={`text-2xl font-bold capitalize mb-2 ${
+                      isSelected ? 'text-[#37b7ff]' : 'text-gray-900'
+                    }`}>{plan}</div>
                     <div className="text-lg text-gray-600 mb-3">
                       {plan === 'esencial' && '6 sesiones'}
                       {plan === 'completa' && '9 sesiones ⭐'}
@@ -252,6 +266,17 @@ const MembershipCalculator = () => {
                       {plan === 'platinum' && 'Resultados perfectos'}
                     </div>
                   </div>
+                  
+                  {/* Indicador de selección */}
+                  {isSelected && (
+                    <div className="absolute top-4 right-4">
+                      <div className="w-8 h-8 bg-[#37b7ff] rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -260,11 +285,25 @@ const MembershipCalculator = () => {
       </div>
 
       {/* Áreas Seleccionadas */}
-      <div className="mb-8">
+      <div id="areas-selection" className="mb-8 scroll-mt-8">
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-2xl font-bold text-gray-900">2. Selecciona tus Áreas</h4>
           <button
-            onClick={() => setShowAreaSelector(!showAreaSelector)}
+            onClick={() => {
+              setShowAreaSelector(!showAreaSelector);
+              if (!showAreaSelector) {
+                // Si se está abriendo el selector, hacer scroll suave
+                setTimeout(() => {
+                  const selectorElement = document.getElementById('area-selector');
+                  if (selectorElement) {
+                    selectorElement.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'start' 
+                    });
+                  }
+                }, 100);
+              }
+            }}
             className="bg-[#37b7ff] text-white px-6 py-3 rounded-full hover:bg-[#2da7ef] transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
           >
             <Plus size={20} />
@@ -273,7 +312,7 @@ const MembershipCalculator = () => {
         </div>
 
         {selectedAreas.length > 0 ? (
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div id="selected-areas-list" className="grid md:grid-cols-2 gap-4 mb-6">
             {selectedAreas.map((area, index) => (
               <div
                 key={index}
@@ -305,7 +344,7 @@ const MembershipCalculator = () => {
 
       {/* Selector de Áreas */}
       {showAreaSelector && (
-        <div className="mb-8 bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-lg">
+        <div id="area-selector" className="mb-8 bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-lg scroll-mt-8">
           <div className="flex items-center justify-between mb-6">
             <h5 className="text-xl font-bold text-gray-900">Seleccionar Áreas de Tratamiento</h5>
             <button
@@ -336,6 +375,16 @@ const MembershipCalculator = () => {
                         onClick={() => {
                           if (!isSelected) {
                             addArea(categoryKey as 'grandes' | 'medianas' | 'chicas', zone);
+                            // Scroll suave al área agregada después de un breve delay
+                            setTimeout(() => {
+                              const selectedAreasElement = document.getElementById('selected-areas-list');
+                              if (selectedAreasElement) {
+                                selectedAreasElement.scrollIntoView({ 
+                                  behavior: 'smooth', 
+                                  block: 'nearest' 
+                                });
+                              }
+                            }, 200);
                           }
                         }}
                         disabled={isSelected}
@@ -359,7 +408,7 @@ const MembershipCalculator = () => {
 
       {/* Resumen de Cálculo */}
       {selectedAreas.length > 0 && (
-        <div className="bg-white rounded-2xl p-8 border-2 border-[#37b7ff]/20 shadow-xl">
+        <div id="calculation-summary" className="bg-white rounded-2xl p-8 border-2 border-[#37b7ff]/20 shadow-xl scroll-mt-8">
           <h4 className="text-2xl font-bold text-gray-900 mb-6 text-center">3. Tu Membresía Personalizada</h4>
           
           <div className="grid md:grid-cols-2 gap-8">
