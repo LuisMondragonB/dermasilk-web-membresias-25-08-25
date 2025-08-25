@@ -10,7 +10,8 @@ import {
   UserPlus,
   Crown,
   Shield,
-  Home
+  Home,
+  Award
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MembershipsSection from '../components/Admin/MembershipsSection';
