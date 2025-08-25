@@ -493,9 +493,19 @@ const MembershipCalculator = () => {
                     {calculation.membershipType === 'combo' ? ' con el paquete Cuerpo Completo' : ' con esta combinación personalizada'}.
                   </p>
                   {calculation.membershipType === 'combo' && (
-                    <p className="text-base mt-2 font-semibold">
-                      ¡Eso es un ahorro de <span className="text-green-700">{formatCurrency(calculation.savings * 12)}</span> al año!
-                    </p>
+                    <div className="mt-3 space-y-2">
+                      <p className="text-base font-semibold">
+                        ¡Eso es un ahorro de <span className="text-green-700">{formatCurrency(calculation.savings * 12)}</span> al año!
+                      </p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-green-300">
+                        <p className="font-bold text-green-900 mb-1">💡 ¡APROVECHA AL MÁXIMO!</p>
+                        <p className="text-sm text-green-800">
+                          <span className="font-semibold">Mismo precio para 5, 10 o 15 áreas.</span> 
+                          ¿Por qué no agregar todas las que necesites? 
+                          <span className="font-bold">¡Es el mismo costo mensual!</span>
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -508,12 +518,46 @@ const MembershipCalculator = () => {
                 <Crown className="text-purple-600 flex-shrink-0 mt-1" size={24} />
                 <div className="text-purple-800">
                   <p className="font-bold text-lg">¡Cuerpo Completo Premium!</p>
-                  <p className="text-lg">Tratamiento integral con precio especial de $1,899/mes para 5 o más áreas.</p>
+                  <div className="space-y-2">
+                    <p className="text-lg">Tratamiento integral con precio especial para 5 o más áreas.</p>
+                    <div className="bg-white/50 rounded-lg p-3 border border-purple-300">
+                      <p className="font-bold text-purple-900 mb-1">💡 ¡APROVECHA AL MÁXIMO!</p>
+                      <p className="text-sm text-purple-800">
+                        <span className="font-semibold">Mismo precio para 5, 10 o 15 áreas.</span> 
+                        ¿Por qué no agregar todas las que necesites? 
+                        <span className="font-bold">¡Es el mismo costo mensual!</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Incentivo para agregar más áreas cuando tiene 5+ */}
+          {calculation.membershipType === 'combo' && selectedAreas.length >= 5 && selectedAreas.length < 10 && (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-4 mt-4">
+              <div className="flex items-start space-x-3">
+                <div className="text-2xl">🔥</div>
+                <div className="text-yellow-900">
+                  <p className="font-bold text-lg">¡Oportunidad Única!</p>
+                  <p className="text-base mb-2">
+                    Tienes {selectedAreas.length} áreas seleccionadas. 
+                    <span className="font-bold text-yellow-800"> ¿Por qué no agregar más?</span>
+                  </p>
+                  <div className="bg-white/70 rounded-lg p-3 border border-yellow-400">
+                    <p className="text-sm font-semibold text-yellow-900">
+                      ✨ Piernas, Brazos, Axilas, Bikini, Rostro, Espalda... 
+                      <span className="font-bold">¡Todas al mismo precio!</span>
+                    </p>
+                    <p className="text-xs text-yellow-800 mt-1">
+                      Aprovecha que ya tienes el descuento máximo de Cuerpo Completo
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* CTA Button */}
           <div className="text-center mt-8">
             <button
