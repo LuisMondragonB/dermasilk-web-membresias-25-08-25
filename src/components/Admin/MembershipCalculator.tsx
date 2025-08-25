@@ -215,7 +215,19 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
               <button
                 key={plan}
                 type="button"
-                onClick={() => setSelectedPlan(plan)}
+                onClick={() => {
+                  setSelectedPlan(plan);
+                  // Scroll automático a la sección de áreas
+                  setTimeout(() => {
+                    const areasSection = document.getElementById('areas-selection-admin');
+                    if (areasSection) {
+                      areasSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                      });
+                    }
+                  }, 100);
+                }}
                 className={`p-4 rounded-xl border-2 transition-all duration-200 ${
                   isSelected
                     ? 'border-[#37b7ff] bg-[#37b7ff]/10 shadow-md'
@@ -238,12 +250,26 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
       </div>
 
       {/* Áreas Seleccionadas */}
-      <div className="mb-6">
+      <div id="areas-selection-admin" className="mb-6 scroll-mt-8">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-lg font-semibold text-gray-900">Áreas Seleccionadas</h4>
           <button
             type="button"
-            onClick={() => setShowAreaSelector(!showAreaSelector)}
+            onClick={() => {
+              setShowAreaSelector(!showAreaSelector);
+              if (!showAreaSelector) {
+                // Si se está abriendo el selector, hacer scroll suave
+                setTimeout(() => {
+                  const selectorElement = document.getElementById('area-selector-admin');
+                  if (selectorElement) {
+                    selectorElement.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'start' 
+                    });
+                  }
+                }, 100);
+              }
+            }}
             className="bg-[#37b7ff] text-white px-4 py-2 rounded-lg hover:bg-[#2da7ef] transition-colors flex items-center space-x-2"
           >
             <Plus size={16} />
@@ -252,7 +278,7 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
         </div>
 
         {selectedAreas.length > 0 ? (
-          <div className="space-y-2">
+          <div id="selected-areas-list-admin" className="space-y-2">
             {selectedAreas.map((area, index) => (
               <div
                 key={index}
@@ -284,7 +310,7 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
 
       {/* Selector de Áreas */}
       {showAreaSelector && (
-        <div className="mb-6 bg-white rounded-xl p-4 border border-gray-200">
+        <div id="area-selector-admin" className="mb-6 bg-white rounded-xl p-4 border border-gray-200 scroll-mt-8">
           <div className="flex items-center justify-between mb-4">
             <h5 className="font-semibold text-gray-900">Seleccionar Áreas</h5>
             <button
@@ -311,6 +337,16 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
                         onClick={() => {
                           if (!isSelected) {
                             addArea(categoryKey as 'grandes' | 'medianas' | 'chicas', zone);
+                            // Scroll suave al área agregada después de un breve delay
+                            setTimeout(() => {
+                              const selectedAreasElement = document.getElementById('selected-areas-list-admin');
+                              if (selectedAreasElement) {
+                                selectedAreasElement.scrollIntoView({ 
+                                  behavior: 'smooth', 
+                                  block: 'nearest' 
+                                });
+                              }
+                            }, 200);
                           }
                         }}
                         disabled={isSelected}
@@ -334,7 +370,7 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
 
       {/* Resumen de Cálculo */}
       {selectedAreas.length > 0 && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div id="calculation-summary-admin" className="bg-white rounded-xl p-6 border border-gray-200 scroll-mt-8">
           <h4 className="text-lg font-semibold text-gray-900 mb-4">Resumen del Cálculo</h4>
           
           <div className="space-y-4">
