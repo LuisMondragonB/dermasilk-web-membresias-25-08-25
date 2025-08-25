@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, CreditCard, User, Phone, X, Lock, FileText } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar, CreditCard, User, Phone, X, Lock, FileText, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import MembershipForm from './MembershipForm';
 
@@ -298,6 +298,53 @@ const MembershipsSection = () => {
     setNotesText('');
   };
 
+  const exportToCSV = () => {
+    // Preparar los datos para exportar
+    const csvData = filteredMemberships.map(membership => ({
+      'Nombre del Cliente': membership.client_name,
+      'Teléfono': membership.client_phone,
+      'Email': membership.client_email || '',
+      'Tipo de Membresía': membership.membership_type,
+      'Plan': membership.plan_name,
+      'Áreas': membership.areas.map(area => area.name).join('; '),
+      'Pago Mensual': `$${membership.monthly_payment}`,
+      'Pago Inicial': `$${membership.initial_payment}`,
+      'Total de Sesiones': membership.total_sessions,
+      'Sesiones Completadas': membership.completed_sessions,
+      'Progreso (%)': Math.round((membership.completed_sessions / membership.total_sessions) * 100),
+      'Estado': membership.status,
+      'Fecha de Inicio': new Date(membership.start_date).toLocaleDateString('es-MX'),
+      'Fecha de Creación': new Date(membership.created_at).toLocaleDateString('es-MX'),
+      'Notas': membership.notes || ''
+    }));
+
+    // Convertir a CSV
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        headers.map(header => {
+          const value = row[header as keyof typeof row];
+          // Escapar comillas y envolver en comillas si contiene comas o saltos de línea
+          if (typeof value === 'string' && (value.includes(',') || value.includes('\n') || value.includes('"'))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value;
+        }).join(',')
+      )
+    ].join('\n');
+
+    // Crear y descargar el archivo
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `membresias_dermasilk_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   const updateMembershipStatus = async (membershipId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -330,13 +377,24 @@ const MembershipsSection = () => {
           <h2 className="text-2xl font-bold text-gray-900">Membresías</h2>
           <p className="text-gray-600">Gestiona las membresías de tus clientes</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-[#37b7ff] text-white px-4 py-2 rounded-lg hover:bg-[#2da7ef] transition-colors duration-200 flex items-center space-x-2"
-        >
-          <Plus size={20} />
-          <span>Nueva Membresía</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={exportToCSV}
+            disabled={filteredMemberships.length === 0}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Exportar datos a Excel"
+          >
+            <Download size={20} />
+            <span>Exportar Excel</span>
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-[#37b7ff] text-white px-4 py-2 rounded-lg hover:bg-[#2da7ef] transition-colors duration-200 flex items-center space-x-2"
+          >
+            <Plus size={20} />
+            <span>Nueva Membresía</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
