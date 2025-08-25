@@ -20,7 +20,9 @@ const LoginPage = () => {
   useEffect(() => {
     // Limpiar autenticación al cargar
     localStorage.removeItem('isAuthenticated');
-    supabase.auth.signOut();
+    if (supabase) {
+      supabase.auth.signOut();
+    }
     
     // Verificar si hay un bloqueo activo
     const savedBlockEndTime = localStorage.getItem('loginBlockEndTime');
@@ -88,6 +90,10 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado. Por favor configura las variables de entorno.');
+      }
+      
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
