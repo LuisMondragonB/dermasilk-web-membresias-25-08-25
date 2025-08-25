@@ -49,7 +49,7 @@ const MembershipCalculator = () => {
   const cuerpoCompletoPlans = {
     esencial: { monthly: 2299, sessions: 6 },
     completa: { monthly: 1899, sessions: 9 },
-    platinum: { monthly: 1899, sessions: 12 }
+    platinum: { monthly: 1799, sessions: 12 }
   };
 
   const calculatePricing = () => {
