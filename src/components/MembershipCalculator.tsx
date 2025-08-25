@@ -450,14 +450,18 @@ const MembershipCalculator = () => {
 
             {/* Precios */}
             <div className="bg-gradient-to-br from-[#37b7ff]/10 to-[#37b7ff]/20 rounded-xl p-6 order-1 md:order-2">
-              {calculation.membershipType === 'personalizada' && calculation.savings > 0 && (
+              {(calculation.membershipType === 'personalizada' || calculation.membershipType === 'combo') && calculation.savings > 0 && (
                 <>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-gray-600 mb-2 space-y-1 sm:space-y-0">
                     <span>Precio Individual:</span>
                     <span className="line-through text-lg font-semibold">{formatCurrency(calculation.individualTotal)}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-green-600 font-bold mb-4 space-y-1 sm:space-y-0">
-                    <span>Descuento ({selectedAreas.length === 2 ? '20%' : selectedAreas.length === 3 ? '25%' : '30%'}):</span>
+                    <span>Descuento ({
+                      calculation.membershipType === 'combo' 
+                        ? Math.round((calculation.savings / calculation.individualTotal) * 100) + '%'
+                        : selectedAreas.length === 2 ? '20%' : selectedAreas.length === 3 ? '25%' : '30%'
+                    }):</span>
                     <span className="text-xl font-bold">-{formatCurrency(calculation.savings)}</span>
                   </div>
                 </>
