@@ -21,7 +21,12 @@ const LoginPage = () => {
     // Limpiar autenticación al cargar
     localStorage.removeItem('isAuthenticated');
     if (supabase) {
-      supabase.auth.signOut();
+      // Solo hacer signOut si existe una sesión activa
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          supabase.auth.signOut();
+        }
+      });
     }
     
     // Verificar si hay un bloqueo activo
