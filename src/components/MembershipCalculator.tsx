@@ -224,7 +224,7 @@ const MembershipCalculator = () => {
                   setSelectedPlan(plan);
                   // Scroll automático a la sección de áreas
                   setTimeout(() => {
-                    const areasSection = document.querySelector('h4:has-text("2. Selecciona tus Áreas")') || document.getElementById('areas-selection');
+                    const areasSection = document.getElementById('areas-selection');
                     if (areasSection) {
                       areasSection.scrollIntoView({ 
                         behavior: 'smooth', 
