@@ -64,9 +64,9 @@ const MembershipCalculator: React.FC<MembershipCalculatorProps> = ({
 
   // Precios para Cuerpo Completo
   const cuerpoCompletoPlans = {
-    esencial: { monthly: 1800, sessions: 6 },
-    completa: { monthly: 1500, sessions: 9 },
-    platinum: { monthly: 1200, sessions: 12 }
+    esencial: { monthly: 2299, sessions: 6 },
+    completa: { monthly: 1899, sessions: 9 },
+    platinum: { monthly: 1799, sessions: 12 }
   };
 
   const calculatePricing = () => {
