@@ -21,10 +21,11 @@ const LoginPage = () => {
     // Limpiar autenticación al cargar
     localStorage.removeItem('isAuthenticated');
     if (supabase) {
-      // Solo hacer signOut si existe una sesión activa
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          supabase.auth.signOut();
+      // Hacer signOut ignorando errores de sesión no encontrada
+      supabase.auth.signOut().catch((error) => {
+        // Ignorar error específico de sesión no encontrada
+        if (!error?.message?.includes('Session from session_id claim in JWT does not exist')) {
+          console.error('Error during signOut:', error);
         }
       });
     }
