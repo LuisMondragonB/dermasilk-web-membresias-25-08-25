@@ -717,5 +717,6 @@ const RewardsSection = () => {
       )}
     </div>
   );
+};
 
 export default RewardsSection;
